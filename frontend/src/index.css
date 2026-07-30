@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  --color-neon-blue: #00f3ff;
+  --color-neon-purple: #b026ff;
+  --color-neon-pink: #ff00ea;
+  
+  --color-dark-bg: #050505;
+  --color-dark-surface: rgba(20, 20, 25, 0.7);
+  --color-dark-surface-hover: rgba(30, 30, 40, 0.8);
+  
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-heading: 'Outfit', 'Inter', system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-dark-bg text-gray-100 font-sans antialiased selection:bg-neon-purple selection:text-white min-h-screen;
+    background-image: 
+      radial-gradient(circle at 15% 50%, rgba(176, 38, 255, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 85% 30%, rgba(0, 243, 255, 0.08) 0%, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-tight;
+  }
+}
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-dark-surface backdrop-blur-xl border border-white/5 shadow-2xl;
+  }
+  
+  .glass-panel-hover {
+    @apply hover:bg-dark-surface-hover hover:border-white/10 hover:shadow-neon-purple/20 transition-all duration-300;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-neon-blue via-neon-purple to-neon-pink;
+  }
+  
+  .neon-border {
+    @apply border border-neon-blue/30 shadow-[0_0_15px_rgba(0,243,255,0.2)];
+  }
+  
+  .neon-border-purple {
+    @apply border border-neon-purple/30 shadow-[0_0_15px_rgba(176,38,255,0.2)];
+  }
+
+  /* Custom scrollbar for timeline */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

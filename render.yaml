@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: promptverse-backend
+    env: node
+    buildCommand: cd backend && npm install && npm run build
+    startCommand: cd backend && npm run start-prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        sync: false
+      - key: PORT
+        value: 5000

@@ -1,0 +1,20 @@
+{
+  "name": "promptverse-cloud-ai",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently --kill-others \"npm run start --prefix backend\" \"npm run dev --prefix frontend\"",
+    "build": "npm run build --prefix backend && npm run build --prefix frontend",
+    "start-backend": "node --env-file=backend/.env backend/dist/index.js",
+    "start-prod": "concurrently --kill-others \"npm run start-backend\" \"npm run preview --prefix frontend\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "concurrently": "^10.0.4"
+  }
+}

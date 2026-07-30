@@ -2,12 +2,38 @@ services:
   - type: web
     name: promptverse-backend
     env: node
-    buildCommand: cd backend && npm install && npm run build
+    buildCommand: cd backend && npm install --legacy-peer-deps && npm run build
     startCommand: cd backend && npm run start-prod
     envVars:
       - key: NODE_ENV
         value: production
-      - key: FRONTEND_URL
-        sync: false
       - key: PORT
         value: 5000
+      - key: DATABASE_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_BASE_URL
+        sync: false
+      - key: LLM_MODEL_PRIMARY
+        sync: false
+      - key: LLM_MODEL_FALLBACK
+        sync: false
+      - key: FAL_KEY
+        sync: false
+      - key: REPLICATE_API_TOKEN
+        sync: false
+      - key: REPLICATE_WEBHOOK_SECRET
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false

@@ -98,7 +98,7 @@ export const MovieStudio: React.FC = () => {
         body: JSON.stringify({ user_id: user.id, scene_id: sceneId, prompt, tier: 'draft' })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Video generation failed');
+      if (!res.ok) throw new Error(data.error?.message || data.message || 'Video generation failed');
       
       // In this system, webhook will eventually update it.
       // We will mock the video url for the UI to proceed immediately since webhooks require ngrok locally

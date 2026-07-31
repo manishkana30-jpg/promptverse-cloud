@@ -14,6 +14,7 @@ import stripeRoutes from './routes/stripe';
 import adminRoutes from './routes/admin';
 import directorRoutes from './routes/director';
 import charactersRoutes from './routes/characters';
+import scenesRoutes from './routes/scenes';
 import paymentRoutes from './routes/paymentRoutes';
 import rewardRoutes from './routes/rewardRoutes';
 import { validateEnv } from './config/env';
@@ -87,6 +88,7 @@ app.use('/api/avatar-bible', avatarRoutes);
 app.use('/api/plan-movie', movieRoutes);
 app.use('/api/director', directorRoutes);
 app.use('/api/characters', charactersRoutes);
+app.use('/api/scenes', scenesRoutes);
 
 // Phase 3 Generation Endpoint
 app.use('/api/generate', generateRoutes);

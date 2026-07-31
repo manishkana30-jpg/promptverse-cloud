@@ -8,6 +8,7 @@ import { AdminAnalytics } from './pages/AdminAnalytics';
 import { AuthPage } from './pages/AuthPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminRoute } from './components/AdminRoute';
+import { MovieStudio } from './pages/MovieStudio';
 import { useStoryboardStore } from './store/useStoryboardStore';
 import { useThemeStore } from './store/useThemeStore';
 import { useAuthStore } from './store/useAuthStore';
@@ -99,8 +100,9 @@ function App() {
                   <Route path="/watch/:slug" element={<WatchPage />} />
                   <Route path="/auth" element={<AuthPage />} />
                   
-                  <Route element={<ProtectedRoute />}>
+                    <Route element={<ProtectedRoute />}>
                     <Route path="/studio" element={<StoryboardTimeline />} />
+                    <Route path="/movie-studio" element={<MovieStudio />} />
                     
                     {/* Admin Routes wrapped in AdminRoute */}
                     <Route element={<AdminRoute />}>

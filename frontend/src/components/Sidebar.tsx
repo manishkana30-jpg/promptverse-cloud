@@ -50,6 +50,20 @@ export const Sidebar: React.FC<Props> = ({ onOpenMarketplace, onOpenPhotoTheme }
           <Film className="w-5 h-5" />
           Storyboard Studio
         </NavLink>
+
+        <NavLink 
+          to="/movie-studio" 
+          className={({ isActive }) => 
+            `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
+              isActive 
+                ? 'bg-neon-blue/10 text-neon-blue shadow-[inset_4px_0_0_rgba(0,243,255,1)]' 
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`
+          }
+        >
+          <Sparkles className="w-5 h-5" />
+          Multi-Agent Engine
+        </NavLink>
         
         <NavLink 
           to="/admin" 

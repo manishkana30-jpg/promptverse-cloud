@@ -62,7 +62,7 @@ export const Sidebar: React.FC<Props> = ({ onOpenMarketplace, onOpenPhotoTheme }
           }
         >
           <Sparkles className="w-5 h-5" />
-          Multi-Agent Engine
+          Movie Studio Engine
         </NavLink>
         
         <NavLink 

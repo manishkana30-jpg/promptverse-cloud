@@ -85,6 +85,9 @@ export const useStoryboardStore = create<StoryboardState>((set, get) => ({
           case 'SCENE_STATUS_UPDATE':
             updateSceneStatus(data.scene_id, { status: data.status });
             break;
+          case 'INSUFFICIENT_FUNDS':
+            set({ error: 'Your wallet balance is empty or insufficient. Please add credits to continue.' });
+            break;
           case 'connected':
             console.log('SSE Connected:', data.message);
             break;

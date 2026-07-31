@@ -170,7 +170,7 @@ router.post('/character-scene', async (req: Request, res: Response) => {
       } else {
         await replicate.predictions.create({
           model: "minimax/video-01", // Placeholder
-          input: { prompt, image_url: character_image_url, watermark: withWatermark ? "PromptVerse AI" : undefined },
+          input: { prompt },
           webhook: `${BASE_URL}/api/webhooks/replicate?scene_id=${scene_id}&trace_id=${traceId}`,
           webhook_events_filter: ["completed"]
         });
@@ -183,7 +183,7 @@ router.post('/character-scene', async (req: Request, res: Response) => {
         // We throw an error if the failover fails so the outer catch can refund
         await replicate.predictions.create({
           model: "minimax/video-01",
-          input: { prompt, image_url: character_image_url, watermark: withWatermark ? "PromptVerse AI" : undefined },
+          input: { prompt },
           webhook: `${BASE_URL}/api/webhooks/replicate?scene_id=${scene_id}&trace_id=${traceId}`,
           webhook_events_filter: ["completed"]
         });
@@ -499,6 +499,7 @@ router.post('/master-storyboard', async (req: Request, res: Response) => {
           if (deductError) {
             await supabase.from('scenes').update({ status: 'FAILED' }).eq('id', scene_id);
             broadcastToUser(user_id, 'SCENE_STATUS_UPDATE', { scene_id, status: 'FAILED' });
+            broadcastToUser(user_id, 'INSUFFICIENT_FUNDS', { scene_id });
             continue;
           }
 

@@ -32,21 +32,22 @@ export const MovieStudio: React.FC = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to generate story');
       
-      const { expanded_story, characters, scenes } = data.data;
+      const { expanded_story, characters, scenes, project_id } = data.data;
       
-      // Need a project ID. In a real app we'd create one. For now use a mock or the existing active project.
-      const projectId = `proj_${Date.now()}`;
+      // The backend now inserts the project, characters, and scenes into Supabase
+      // and returns the real database UUIDs.
+      const projectId = project_id;
       
-      // Map scenes to store schema
+      // Map scenes to store schema (the backend now provides the real UUID in 'id')
       const mappedScenes = scenes.map((s: any) => ({
-        id: `scene_${Date.now()}_${s.scene_index}`,
+        id: s.id, // Real UUID from database
         scene_index: s.scene_index,
         location: s.location,
         prompt: s.prompt,
         dialogue: s.dialogue,
         has_dialogue: s.has_dialogue,
-        character_ids_present: s.character_ids_present,
-        status: 'PENDING'
+        character_ids_present: s.character_ids_present, // Now contains real UUIDs
+        status: s.status || 'PENDING'
       }));
 
       store.setProjectData(projectId, expanded_story, characters, mappedScenes);
@@ -58,7 +59,7 @@ export const MovieStudio: React.FC = () => {
     }
   };
 
-  const handleUploadCharacter = async (tempId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadCharacter = async (charId: string, tempId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     if (!user || !store.projectId) return;
     const file = e.target.files?.[0];
     if (!file) return;
@@ -67,7 +68,7 @@ export const MovieStudio: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append('image', file);
-      formData.append('character_id', tempId);
+      formData.append('character_id', charId); // MUST be the real UUID for Supabase
       formData.append('project_id', store.projectId);
       formData.append('user_id', user.id);
 
@@ -224,7 +225,7 @@ export const MovieStudio: React.FC = () => {
                         <img src={char.reference_image_url} alt={char.name} className="w-full h-full object-cover" />
                         <label className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition">
                           <Upload className="w-8 h-8 text-white" />
-                          <input type="file" className="hidden" accept="image/*" onChange={(e) => handleUploadCharacter(char.temp_id, e)} />
+                          <input type="file" className="hidden" accept="image/*" onChange={(e) => handleUploadCharacter(char.id, char.temp_id, e)} />
                         </label>
                       </div>
                     ) : (
@@ -237,7 +238,7 @@ export const MovieStudio: React.FC = () => {
                             <span className="text-sm text-gray-500">Upload Reference</span>
                           </>
                         )}
-                        <input type="file" className="hidden" accept="image/*" onChange={(e) => handleUploadCharacter(char.temp_id, e)} />
+                        <input type="file" className="hidden" accept="image/*" onChange={(e) => handleUploadCharacter(char.id, char.temp_id, e)} />
                       </label>
                     )}
                   </div>

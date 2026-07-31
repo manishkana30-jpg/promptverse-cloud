@@ -1,11 +1,13 @@
 import { Router, Request, Response } from 'express';
 import { GoogleGenAI } from '@google/genai';
+import { createClient } from '@supabase/supabase-js';
 import { DirectorOutputSchema } from '../schemas/director';
 import { AppError } from '../utils/errorHandler';
 import { logger } from '../utils/logger';
 import axios from 'axios';
 
 const router = Router();
+const supabase = createClient(process.env.SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || '');
 
 router.post('/generate', async (req: Request, res: Response) => {
   const { idea, user_id } = req.body;
@@ -101,7 +103,91 @@ Return strictly as JSON matching this schema:
       return res.status(422).json(err.toJSON());
     }
 
-    return res.status(200).json({ success: true, data: validationResult.data });
+    const data = validationResult.data;
+
+    // 1. Insert Project
+    const { data: project, error: projErr } = await supabase
+      .from('projects')
+      .insert({
+        owner_id: user_id,
+        title: data.expanded_story.substring(0, 50) + '...',
+        idea: idea,
+        story: data.expanded_story,
+        status: 'DRAFT',
+      })
+      .select('id')
+      .single();
+
+    if (projErr || !project) {
+      logger.error({ err: projErr }, 'Failed to create project');
+      throw new Error('Database Error: Failed to create project');
+    }
+
+    // 2. Insert Characters and create a mapping from temp_id to real UUID
+    const idMapping: Record<string, string> = {};
+    const finalCharacters = [];
+
+    for (const char of data.characters) {
+      const { data: insertedChar, error: charErr } = await supabase
+        .from('characters')
+        .insert({
+          project_id: project.id,
+          name: char.name,
+          type: char.type,
+          description: char.description,
+          temp_id: char.temp_id
+        })
+        .select('id')
+        .single();
+        
+      if (charErr || !insertedChar) {
+        logger.error({ err: charErr }, 'Failed to create character');
+        continue;
+      }
+      
+      idMapping[char.temp_id] = insertedChar.id;
+      finalCharacters.push({ ...char, id: insertedChar.id });
+    }
+
+    // 3. Insert Scenes
+    const finalScenes = [];
+    for (const scene of data.scenes) {
+      const mappedCharIds = (scene.character_ids_present || [])
+        .map((tempId: string) => idMapping[tempId])
+        .filter(Boolean); // Filter out any that failed to map
+
+      const { data: insertedScene, error: sceneErr } = await supabase
+        .from('scenes')
+        .insert({
+          project_id: project.id,
+          scene_index: scene.scene_index,
+          location: scene.location,
+          prompt: scene.prompt,
+          dialogue: scene.dialogue,
+          has_dialogue: scene.has_dialogue,
+          character_ids_present: mappedCharIds,
+          status: 'PENDING'
+        })
+        .select('id')
+        .single();
+
+      if (sceneErr || !insertedScene) {
+        logger.error({ err: sceneErr }, 'Failed to create scene');
+        continue;
+      }
+      
+      finalScenes.push({ ...scene, id: insertedScene.id, character_ids_present: mappedCharIds });
+    }
+
+    return res.status(200).json({ 
+      success: true, 
+      data: {
+        project_id: project.id,
+        expanded_story: data.expanded_story,
+        characters: finalCharacters,
+        scenes: finalScenes
+      } 
+    });
   } catch (error: any) {
     logger.error('Director generation failed', error);
     const err = new AppError(error.message || 'Failed to generate story', 'GENERATION_FAILED', 500);

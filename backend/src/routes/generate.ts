@@ -71,7 +71,7 @@ router.post('/', async (req: Request, res: Response) => {
       });
     } else {
       await replicate.predictions.create({
-        version: "some-premium-video-model-version", // Placeholder
+        model: "minimax/video-01", // Placeholder
         input: { prompt: sceneData.prompt },
         webhook: `${BASE_URL}/api/webhooks/replicate?scene_id=${scene_id}&trace_id=${traceId}`,
         webhook_events_filter: ["completed"]
@@ -169,7 +169,7 @@ router.post('/character-scene', async (req: Request, res: Response) => {
         });
       } else {
         await replicate.predictions.create({
-          version: "some-premium-video-model-version", // Placeholder
+          model: "minimax/video-01", // Placeholder
           input: { prompt, image_url: character_image_url, watermark: withWatermark ? "PromptVerse AI" : undefined },
           webhook: `${BASE_URL}/api/webhooks/replicate?scene_id=${scene_id}&trace_id=${traceId}`,
           webhook_events_filter: ["completed"]
@@ -182,7 +182,7 @@ router.post('/character-scene', async (req: Request, res: Response) => {
       if (model.startsWith('fal-ai/')) {
         // We throw an error if the failover fails so the outer catch can refund
         await replicate.predictions.create({
-          version: "some-premium-video-model-version",
+          model: "minimax/video-01",
           input: { prompt, image_url: character_image_url, watermark: withWatermark ? "PromptVerse AI" : undefined },
           webhook: `${BASE_URL}/api/webhooks/replicate?scene_id=${scene_id}&trace_id=${traceId}`,
           webhook_events_filter: ["completed"]
@@ -514,7 +514,7 @@ router.post('/master-storyboard', async (req: Request, res: Response) => {
               });
             } else {
               await replicate.predictions.create({
-                version: "some-premium-video-model-version", // Placeholder
+                model: "minimax/video-01", // Placeholder
                 input: { prompt: sceneRecord.prompt },
                 webhook: `${BASE_URL}/api/webhooks/replicate?scene_id=${scene_id}&trace_id=${traceId}`,
                 webhook_events_filter: ["completed"]
@@ -526,7 +526,7 @@ router.post('/master-storyboard', async (req: Request, res: Response) => {
             // If the primary provider was Fal, attempt Replicate as the failover
             if (model.startsWith('fal-ai/')) {
               await replicate.predictions.create({
-                version: "some-premium-video-model-version",
+                model: "minimax/video-01",
                 input: { prompt: sceneRecord.prompt },
                 webhook: `${BASE_URL}/api/webhooks/replicate?scene_id=${scene_id}&trace_id=${traceId}`,
                 webhook_events_filter: ["completed"]

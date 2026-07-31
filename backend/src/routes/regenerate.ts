@@ -68,7 +68,7 @@ router.post('/', async (req: Request, res: Response) => {
       });
     } else {
       await replicate.predictions.create({
-        version: "some-premium-video-model-version", // Placeholder
+        model: "minimax/video-01", // Placeholder
         input: { prompt },
         webhook: `${BASE_URL}/api/webhooks/replicate?scene_id=${scene_id}&trace_id=${traceId}`,
         webhook_events_filter: ["completed"]

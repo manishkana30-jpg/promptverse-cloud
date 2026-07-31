@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { StoryboardTimeline } from './components/StoryboardTimeline';
 import { ExplorePage } from './pages/ExplorePage';
 import { WatchPage } from './pages/WatchPage';
 import { AdminDashboard } from './pages/AdminDashboard';
@@ -101,7 +100,6 @@ function App() {
                   <Route path="/auth" element={<AuthPage />} />
                   
                     <Route element={<ProtectedRoute />}>
-                    <Route path="/studio" element={<StoryboardTimeline />} />
                     <Route path="/movie-studio" element={<MovieStudio />} />
                     
                     {/* Admin Routes wrapped in AdminRoute */}

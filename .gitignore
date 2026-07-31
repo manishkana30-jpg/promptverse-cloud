@@ -8,3 +8,6 @@ build/
 *.log
 .agents/
 scratch/
+
+.vercel
+.env*

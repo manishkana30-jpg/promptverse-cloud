@@ -38,20 +38,6 @@ export const Sidebar: React.FC<Props> = ({ onOpenMarketplace, onOpenPhotoTheme }
         </NavLink>
         
         <NavLink 
-          to="/studio" 
-          className={({ isActive }) => 
-            `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${
-              isActive 
-                ? 'bg-neon-purple/10 text-neon-pink shadow-[inset_4px_0_0_rgba(255,0,234,1)]' 
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`
-          }
-        >
-          <Film className="w-5 h-5" />
-          Storyboard Studio
-        </NavLink>
-
-        <NavLink 
           to="/movie-studio" 
           className={({ isActive }) => 
             `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${

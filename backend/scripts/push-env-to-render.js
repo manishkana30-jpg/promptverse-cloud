@@ -27,6 +27,7 @@ envFile.split('\n').forEach(line => {
 if (!envMap['NODE_ENV']) envMap['NODE_ENV'] = 'production';
 if (!envMap['PORT']) envMap['PORT'] = '5000';
 if (!envMap['FRONTEND_URL']) envMap['FRONTEND_URL'] = 'https://promptversecloudai.vercel.app';
+if (!envMap['BASE_URL']) envMap['BASE_URL'] = 'https://promptverse-cloud.onrender.com';
 
 // Render API expects an array of { key, value }
 const envVars = Object.keys(envMap).map(key => ({ key, value: envMap[key] }));

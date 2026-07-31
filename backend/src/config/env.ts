@@ -25,7 +25,7 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().startsWith('whsec_', { message: 'Stripe webhook secret must start with whsec_' }).optional(),
   
   SENTRY_DSN: z.string().optional().default(""),
-  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_API_KEY: z.string().min(10, 'Missing Google Gemini API Key'),
 });
 
 export function validateEnv() {

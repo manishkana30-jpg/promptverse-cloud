@@ -359,28 +359,13 @@ router.post('/lipsync', async (req: Request, res: Response) => {
 });
 
 async function callDirectorLLM(promptText: string) {
-  let primaryModel = process.env.LLM_MODEL_PRIMARY || 'meta-llama/llama-3.3-70b-instruct';
-  let fallbackModel = process.env.LLM_MODEL_FALLBACK || 'qwen/qwen-2.5-72b-instruct';
-  const localModel = process.env.LLM_MODEL_LOCAL || 'llama3.1';
-  const localUrl = process.env.LLM_LOCAL_URL || 'http://localhost:11434/v1';
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY is missing from environment variables.");
+  }
 
-  // Hot-fix for stale .env states containing deprecated free models
-  if (primaryModel.includes(':free')) primaryModel = 'meta-llama/llama-3.3-70b-instruct';
-  if (fallbackModel.includes(':free')) fallbackModel = 'qwen/qwen-2.5-72b-instruct';
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-  const headers = {
-    'Authorization': `Bearer ${process.env.LLM_API_KEY}`,
-    'HTTP-Referer': process.env.FRONTEND_URL || 'http://localhost:5173',
-    'X-Title': 'PromptVerse AI',
-    'Content-Type': 'application/json',
-  };
-
-  const payload = (model: string) => ({
-    model: model,
-    messages: [
-      { 
-        role: 'system', 
-        content: `You are an expert AI director. Return only valid raw JSON structured storyboard scenes.
+  const systemInstruction = `You are an expert AI director. Return only valid raw JSON structured storyboard scenes.
 You MUST strictly adhere to this exact JSON schema:
 {
   "project_scenes": [
@@ -389,56 +374,30 @@ You MUST strictly adhere to this exact JSON schema:
       "dialogue": "Optional dialogue, voiceover, or character speech for the scene (leave empty if none)"
     }
   ]
-}` 
-      },
-      { role: 'user', content: promptText }
-    ]
-  });
+}`;
 
-  // 1. Try Primary Model First
   try {
-    console.log(`Attempting generation with Primary Model: ${primaryModel}`);
-    const response = await axios.post(
-      `${process.env.LLM_BASE_URL}/chat/completions`,
-      payload(primaryModel),
-      { headers, timeout: 15000 }
-    );
-    return response.data.choices[0].message.content;
-  } catch (primaryError: any) {
-    console.warn(`⚠️ Primary model (${primaryModel}) failed or timed out. Switching to fallback...`);
-    console.warn(`Reason: ${primaryError.message}`);
-
-    // 2. Fallback to Secondary Model
-    try {
-      console.log(`Attempting generation with Fallback Model: ${fallbackModel}`);
-      const fallbackResponse = await axios.post(
-        `${process.env.LLM_BASE_URL}/chat/completions`,
-        payload(fallbackModel),
-        { headers, timeout: 20000 }
-      );
-      return fallbackResponse.data.choices[0].message.content;
-    } catch (fallbackError: any) {
-      console.warn(`⚠️ Secondary model (${fallbackModel}) failed or timed out. Switching to Local GPU...`);
-      console.warn(`Reason: ${fallbackError.message}`);
-
-      // 3. Fallback to Local GPU Model (Ollama / LM Studio)
-      try {
-        console.log(`Attempting generation with Local Model: ${localModel} at ${localUrl}`);
-        // Local models generally don't need auth, so we just pass basic headers
-        const localHeaders = { 'Content-Type': 'application/json' };
-        const localResponse = await axios.post(
-          `${localUrl}/chat/completions`,
-          payload(localModel),
-          { headers: localHeaders, timeout: 60000 } // Give local GPU more time
-        );
-        return localResponse.data.choices[0].message.content;
-      } catch (localError: any) {
-        console.error(`❌ Critical: All models (Primary, Fallback, Local) failed.`);
-        throw new Error(`Storyboard generation failed across all tiers (including Local GPU): ${localError.message}`);
+    console.log(`Attempting generation with Google Gemini (gemini-2.5-flash) and Google Search Grounding...`);
+    
+    // According to @google/genai syntax:
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [
+        { role: 'user', parts: [{ text: systemInstruction + '\n\nStory Prompt: ' + promptText }] }
+      ],
+      config: {
+        tools: [{ googleSearch: {} }],
+        responseMimeType: "application/json"
       }
-    }
+    });
+
+    return response.text || "";
+  } catch (error: any) {
+    console.error(`❌ Critical: Google Gemini generation failed.`);
+    throw new Error(`Storyboard generation failed: ${error.message}`);
   }
 }
+
 
 router.post('/master-storyboard', async (req: Request, res: Response) => {
   const { user_id, project_id, master_prompt } = req.body;
@@ -448,8 +407,8 @@ router.post('/master-storyboard', async (req: Request, res: Response) => {
     return res.status(400).json(err.toJSON());
   }
 
-  if (!process.env.LLM_API_KEY) {
-    const err = new AppError('Missing LLM API Key in environment variables', 'MISSING_API_KEY', 500);
+  if (!process.env.GEMINI_API_KEY) {
+    const err = new AppError('Missing Gemini API Key in environment variables', 'MISSING_API_KEY', 500);
     return res.status(500).json(err.toJSON());
   }
 

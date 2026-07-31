@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../utils/supabaseClient';
 
 export type StudioPhase = '1_IDEATION' | '2_CHARACTER_MAPPING' | '3_SCENE_STUDIO' | '4_STITCHING_TIMELINE';
 

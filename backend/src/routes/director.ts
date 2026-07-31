@@ -48,7 +48,7 @@ Raw Idea: ${idea}`;
     try {
       parsedJson = JSON.parse(jsonString);
     } catch (parseError) {
-      logger.error('Failed to parse Director LLM JSON', { jsonString });
+      logger.error({ jsonString }, 'Failed to parse Director LLM JSON');
       const err = new AppError('AI returned invalid JSON format', 'UNPROCESSABLE_ENTITY', 422);
       return res.status(422).json(err.toJSON());
     }
@@ -56,7 +56,7 @@ Raw Idea: ${idea}`;
     const validationResult = DirectorOutputSchema.safeParse(parsedJson);
 
     if (!validationResult.success) {
-      logger.error('Zod schema validation failed', { errors: validationResult.error.errors });
+      logger.error({ errors: validationResult.error.format() }, 'Zod schema validation failed');
       const err = new AppError('AI output failed schema validation', 'UNPROCESSABLE_ENTITY', 422);
       return res.status(422).json(err.toJSON());
     }

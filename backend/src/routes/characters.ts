@@ -30,7 +30,7 @@ router.post('/upload-reference', upload.single('image'), async (req: Request, re
       });
 
     if (uploadError) {
-      logger.error('Failed to upload character reference image', uploadError);
+      logger.error({ err: uploadError }, 'Failed to upload character reference image');
       throw new AppError('Failed to upload image', 'UPLOAD_FAILED', 500);
     }
 
@@ -48,7 +48,7 @@ router.post('/upload-reference', upload.single('image'), async (req: Request, re
       .eq('project_id', project_id);
 
     if (dbError) {
-      logger.error('Failed to update character with image URL', dbError);
+      logger.error({ err: dbError }, 'Failed to update character with image URL');
       throw new AppError('Failed to update character', 'DATABASE_ERROR', 500);
     }
 

@@ -109,7 +109,7 @@ Return strictly as JSON matching this schema:
     const { data: project, error: projErr } = await supabase
       .from('projects')
       .insert({
-        owner_id: user_id,
+        user_id: user_id,
         title: data.expanded_story.substring(0, 50) + '...',
         idea: idea,
         story: data.expanded_story,

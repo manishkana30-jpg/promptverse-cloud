@@ -1,0 +1,7 @@
+-- Migration: 0010_movie_engine_projects_update.sql
+
+ALTER TABLE public.projects
+ADD COLUMN IF NOT EXISTS idea TEXT,
+ADD COLUMN IF NOT EXISTS story TEXT,
+ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'DRAFT',
+ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL;

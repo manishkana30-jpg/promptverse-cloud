@@ -377,11 +377,11 @@ You MUST strictly adhere to this exact JSON schema:
 }`;
 
   try {
-    console.log(`Attempting generation with Google Gemini (gemini-2.5-flash) and Google Search Grounding...`);
+    console.log(`Attempting generation with Google Gemini (gemini-1.5-flash) and Google Search Grounding...`);
     
     // According to @google/genai syntax:
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-1.5-flash',
       contents: [
         { role: 'user', parts: [{ text: systemInstruction + '\n\nStory Prompt: ' + promptText }] }
       ],

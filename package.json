@@ -16,5 +16,9 @@
   "type": "commonjs",
   "devDependencies": {
     "concurrently": "^10.0.4"
-  }
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ]
 }

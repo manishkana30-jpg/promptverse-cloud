@@ -10,7 +10,7 @@ const router = Router();
 const supabase = createClient(process.env.SUPABASE_URL || '', process.env.SUPABASE_SERVICE_ROLE_KEY || '');
 const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
 
-const BASE_URL = process.env.BASE_URL || 'https://promptverse.app';
+const BASE_URL = process.env.BASE_URL || 'https://promptverse-cloud.onrender.com';
 
 router.post('/', async (req: Request, res: Response) => {
   const { user_id, scene_id, prompt, tier } = req.body;

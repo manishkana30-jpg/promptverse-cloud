@@ -32,13 +32,20 @@ const app = express();
 
 app.use(cors({
   origin: function (origin, callback) {
-    const allowedOrigins = ['http://127.0.0.1:5173', 'http://localhost:5173'];
+    const allowedOrigins = [
+      'http://127.0.0.1:5173', 
+      'http://localhost:5173',
+      'https://promptversecloudai.vercel.app',
+      'https://frontend-mu-three-52.vercel.app'
+    ];
     if (process.env.FRONTEND_URL) {
       allowedOrigins.push(process.env.FRONTEND_URL);
     }
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+    // Allow if no origin (e.g. mobile apps, postman) or if origin is in the allowed list
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.warn(`[CORS] Blocked request from unauthorized origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },

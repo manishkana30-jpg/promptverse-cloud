@@ -106,7 +106,7 @@ router.post('/replicate', async (req: Request, res: Response) => {
     if (!scene_id) return res.status(400).json({ error: 'Missing scene_id' });
 
     const status = payload.status === 'succeeded' ? 'COMPLETED' : 'FAILED';
-    const video_url = payload.output ? payload.output[0] : null;
+    const video_url = payload.output ? (Array.isArray(payload.output) ? payload.output[0] : payload.output) : null;
 
     await handleWebhookResult(scene_id, status, video_url);
     return res.status(200).json({ received: true });

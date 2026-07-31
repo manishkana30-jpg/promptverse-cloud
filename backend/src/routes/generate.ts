@@ -236,7 +236,8 @@ router.post('/audio', async (req: Request, res: Response) => {
   const { user_id, scene_id, prompt: text, voice_id = '21m00Tcm4TlvDq8ikWAM' } = req.body;
 
   if (!user_id || !scene_id || !text) {
-    return res.status(400).json({ error: 'Missing required fields' });
+    const err = new AppError('Missing required fields', 'BAD_REQUEST', 400, 'Please provide user_id, scene_id, and prompt.');
+    return res.status(400).json({ error: err.toJSON() });
   }
 
   try {
@@ -276,7 +277,8 @@ router.post('/audio', async (req: Request, res: Response) => {
     if (!response.ok) {
       await supabase.rpc('refund_scene_credits', { p_user_id: user_id, p_scene_id: scene_id });
       const errText = await response.text();
-      return res.status(500).json({ error: `ElevenLabs generation failed: ${errText}` });
+      const err = new AppError(`ElevenLabs generation failed: ${errText}`, 'AUDIO_FAILED', 500, 'Our audio provider encountered an error. Please check API keys or try again.');
+      return res.status(500).json({ error: err.toJSON() });
     }
 
     const arrayBuffer = await response.arrayBuffer();
@@ -290,7 +292,8 @@ router.post('/audio', async (req: Request, res: Response) => {
 
     if (uploadError) {
       await supabase.rpc('refund_scene_credits', { p_user_id: user_id, p_scene_id: scene_id });
-      return res.status(500).json({ error: 'Failed to upload generated audio' });
+      const err = new AppError('Failed to upload generated audio', 'UPLOAD_FAILED', 500, 'Could not upload the generated audio to storage.');
+      return res.status(500).json({ error: err.toJSON() });
     }
 
     const { data: publicUrlData } = supabase.storage.from('media').getPublicUrl(fileName);
@@ -308,7 +311,8 @@ router.post('/lipsync', async (req: Request, res: Response) => {
   const { user_id, scene_id, prompt } = req.body;
   
   if (!user_id || !scene_id) {
-    return res.status(400).json({ error: 'Missing required fields' });
+    const err = new AppError('Missing required fields', 'BAD_REQUEST', 400, 'Please provide user_id and scene_id.');
+    return res.status(400).json({ error: err.toJSON() });
   }
 
   // Input Validation Guards
@@ -319,12 +323,14 @@ router.post('/lipsync', async (req: Request, res: Response) => {
     .single();
 
   if (sceneError || !scene) {
-    return res.status(404).json({ error: 'Scene not found' });
+    const err = new AppError('Scene not found', 'NOT_FOUND', 404, 'The scene you are trying to lipsync could not be found.');
+    return res.status(404).json({ error: err.toJSON() });
   }
 
   // The strict guard from Phase 2
   if (!scene.video_url || !scene.audio_url) {
-    return res.status(400).json({ error: "Both Video and Audio URLs are required for Lip Syncing." });
+    const err = new AppError('Both Video and Audio URLs are required for Lip Syncing.', 'MISSING_MEDIA', 400, 'Please generate both video and audio before attempting to lipsync.');
+    return res.status(400).json({ error: err.toJSON() });
   }
 
   try {
@@ -354,7 +360,8 @@ router.post('/lipsync', async (req: Request, res: Response) => {
     return res.status(200).json({ success: true, message: 'Lipsync dispatched' });
   } catch (error: any) {
     await supabase.rpc('refund_scene_credits', { p_user_id: user_id, p_scene_id: scene_id });
-    return res.status(500).json({ error: 'Failed to dispatch lipsync generation' });
+    const err = new AppError('Failed to dispatch lipsync generation', 'LIPSYNC_FAILED', 500, 'We could not dispatch the lipsync generation. Please try again.');
+    return res.status(500).json({ error: err.toJSON() });
   }
 });
 

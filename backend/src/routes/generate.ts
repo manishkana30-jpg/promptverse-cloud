@@ -156,15 +156,38 @@ router.post('/character-scene', async (req: Request, res: Response) => {
       return res.status(500).json(err.toJSON());
     }
 
-    // 3. AI Routing Director
-    const { model, subjectType, inputFormat } = await routeGenerationRequest(prompt, !!character_image_url, tier);
+    // 3. Fetch Scene Characters for Grounding
+    const { data: sceneData } = await supabase
+      .from('scenes')
+      .select('character_ids_present, project_id')
+      .eq('id', scene_id)
+      .single();
+
+    let resolved_image_url = character_image_url;
+    
+    if (sceneData?.character_ids_present && sceneData.character_ids_present.length > 0) {
+      const { data: chars } = await supabase
+        .from('characters')
+        .select('reference_image_url')
+        .eq('project_id', sceneData.project_id)
+        .in('temp_id', sceneData.character_ids_present)
+        .not('reference_image_url', 'is', null)
+        .limit(1);
+
+      if (chars && chars.length > 0 && chars[0].reference_image_url) {
+        resolved_image_url = chars[0].reference_image_url;
+      }
+    }
+
+    // 4. AI Routing Director
+    const { model, subjectType, inputFormat } = await routeGenerationRequest(prompt, !!resolved_image_url, tier);
     const startTime = Date.now();
 
-    // 4. Dispatch with Failover Sequence
+    // 5. Dispatch with Failover Sequence
     try {
       if (model.startsWith('fal-ai/')) {
         await fal.queue.submit(model, {
-          input: { prompt, image_url: character_image_url, watermark: withWatermark ? "PromptVerse AI" : undefined },
+          input: { prompt, image_url: resolved_image_url, watermark: withWatermark ? "PromptVerse AI" : undefined },
           webhookUrl: `${BASE_URL}/api/webhooks/fal?scene_id=${scene_id}&trace_id=${traceId}`
         });
       } else {
@@ -307,7 +330,7 @@ router.post('/audio', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/lipsync', async (req: Request, res: Response) => {
+router.post('/audio-lipsync', async (req: Request, res: Response) => {
   const { user_id, scene_id, prompt } = req.body;
   
   if (!user_id || !scene_id) {
@@ -318,7 +341,7 @@ router.post('/lipsync', async (req: Request, res: Response) => {
   // Input Validation Guards
   const { data: scene, error: sceneError } = await supabase
     .from('scenes')
-    .select('video_url, audio_url')
+    .select('video_url, has_dialogue, dialogue')
     .eq('id', scene_id)
     .single();
 
@@ -327,10 +350,8 @@ router.post('/lipsync', async (req: Request, res: Response) => {
     return res.status(404).json({ error: err.toJSON() });
   }
 
-  // The strict guard from Phase 2
-  if (!scene.video_url || !scene.audio_url) {
-    const err = new AppError('Both Video and Audio URLs are required for Lip Syncing.', 'MISSING_MEDIA', 400, 'Please generate both video and audio before attempting to lipsync.');
-    return res.status(400).json({ error: err.toJSON() });
+  if (!scene.has_dialogue) {
+    return res.status(400).json({ error: "Scene has no dialogue" });
   }
 
   try {
@@ -348,16 +369,47 @@ router.post('/lipsync', async (req: Request, res: Response) => {
       return res.status(402).json(err.toJSON());
     }
 
-    // Mock Lipsync generation since we don't have SyncLabs/Fal setup yet
-    // In a real app this would hit Fal.ai SyncLabs API
+    // Step 4a: Call ElevenLabs
+    const textToSpeak = prompt || scene.dialogue || "Hello";
+    const voice_id = '21m00Tcm4TlvDq8ikWAM';
+    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voice_id}`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'audio/mpeg',
+        'xi-api-key': process.env.ELEVENLABS_API_KEY || '',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        text: textToSpeak,
+        model_id: 'eleven_flash_v2_5'
+      })
+    });
+
+    if (!response.ok) {
+      throw new AppError('ElevenLabs generation failed', 'AUDIO_FAILED', 500);
+    }
+    
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const audioFileName = `${user_id}_${crypto.randomBytes(4).toString('hex')}.mp3`;
+    
+    await supabase.storage.from('media').upload(audioFileName, buffer, { contentType: 'audio/mpeg' });
+    const { data: publicUrlData } = supabase.storage.from('media').getPublicUrl(audioFileName);
+    const audio_url = publicUrlData.publicUrl;
+    
+    await supabase.from('scenes').update({ audio_url }).eq('id', scene_id);
+
+    // Step 4b: Call SyncLabs (Mocked for now as we don't have SyncLabs API configured)
     setTimeout(async () => {
+      // In a real app this would hit SyncLabs API and poll. For now, mock success:
+      await supabase.from('scenes').update({ lipsync_video_url: scene.video_url }).eq('id', scene_id);
       broadcastToUser(user_id, 'VIDEO_READY', { 
         scene_id, 
         video_url: scene.video_url // Return same video url for mock
       });
     }, 3000);
 
-    return res.status(200).json({ success: true, message: 'Lipsync dispatched' });
+    return res.status(200).json({ success: true, message: 'Audio & Lipsync dispatched' });
   } catch (error: any) {
     await supabase.rpc('refund_scene_credits', { p_user_id: user_id, p_scene_id: scene_id });
     const err = new AppError('Failed to dispatch lipsync generation', 'LIPSYNC_FAILED', 500, 'We could not dispatch the lipsync generation. Please try again.');

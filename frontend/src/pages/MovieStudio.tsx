@@ -39,7 +39,7 @@ export const MovieStudio: React.FC = () => {
         throw apiError;
       }
       
-      const newCharacters = data.story.characters.map((c: any) => ({ ...c, id: crypto.randomUUID() }));
+      const { expanded_story, characters, scenes, project_id } = data.data;
       
       // The backend now inserts the project, characters, and scenes into Supabase
       // and returns the real database UUIDs.

@@ -8,6 +8,7 @@ import { AuthPage } from './pages/AuthPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminRoute } from './components/AdminRoute';
 import { MovieStudio } from './pages/MovieStudio';
+import { BillingPage } from './pages/BillingPage';
 import { useStoryboardStore } from './store/useStoryboardStore';
 import { useThemeStore } from './store/useThemeStore';
 import { useAuthStore } from './store/useAuthStore';
@@ -101,6 +102,7 @@ function App() {
                   
                     <Route element={<ProtectedRoute />}>
                     <Route path="/movie-studio" element={<MovieStudio />} />
+                    <Route path="/billing" element={<BillingPage />} />
                     
                     {/* Admin Routes wrapped in AdminRoute */}
                     <Route element={<AdminRoute />}>

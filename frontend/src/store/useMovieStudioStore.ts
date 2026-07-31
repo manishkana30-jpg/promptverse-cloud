@@ -43,6 +43,7 @@ interface MovieStudioState {
   updateSceneMedia: (sceneId: string, mediaType: 'video' | 'audio' | 'lipsync', url: string) => void;
   setStitchJob: (jobId: string) => void;
   pollStitchJob: () => void;
+  resetStudio: () => void;
 }
 
 export const useMovieStudioStore = create<MovieStudioState>()(
@@ -114,7 +115,17 @@ export const useMovieStudioStore = create<MovieStudioState>()(
             }
           }
         }, 5000);
-      }
+      },
+      resetStudio: () => set({
+        phase: '1_IDEATION',
+        projectId: null,
+        expandedStory: '',
+        characters: [],
+        scenes: [],
+        stitchJobId: null,
+        stitchStatus: null,
+        finalVideoUrl: null
+      })
     }),
     {
       name: 'movie-studio-storage',

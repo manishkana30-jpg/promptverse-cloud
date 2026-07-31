@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useMovieStudioStore } from '../store/useMovieStudioStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { ActionableErrorToast, type ActionableError } from '../components/ActionableErrorToast';
-import { Loader2, Upload, Play, Film, MessageSquare, Download, Sparkles, Wand2, Image as ImageIcon, Video, Music } from 'lucide-react';
+import { Loader2, Upload, Play, Film, MessageSquare, Download, Sparkles, Wand2, Image as ImageIcon, Video, Music, ArrowLeft, ArrowRight, Save, Trash2, CheckCircle2 } from 'lucide-react';
 
 export const MovieStudio: React.FC = () => {
   const { user } = useAuthStore();
   const store = useMovieStudioStore();
   const [error, setError] = useState<ActionableError | null>(null);
+  const [saveToast, setSaveToast] = useState(false);
   
   // Phase 1 local state
   const [idea, setIdea] = useState('');
@@ -244,15 +245,6 @@ export const MovieStudio: React.FC = () => {
                   </div>
                 ))}
               </div>
-
-              <div className="mt-8 flex justify-end">
-                <button
-                  onClick={() => store.setPhase('3_SCENE_STUDIO')}
-                  className="bg-neon-purple text-white font-bold py-3 px-8 rounded-xl hover:bg-purple-500 transition"
-                >
-                  Continue to Scene Studio
-                </button>
-              </div>
             </div>
           </div>
         )}
@@ -262,12 +254,6 @@ export const MovieStudio: React.FC = () => {
           <div className="space-y-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold">Scene Studio</h2>
-              <button
-                onClick={() => store.setPhase('4_STITCHING_TIMELINE')}
-                className="bg-neon-purple text-white font-bold py-2 px-6 rounded-lg hover:bg-purple-500 transition"
-              >
-                Go to Stitching Timeline
-              </button>
             </div>
             
             {store.scenes.map((scene) => (
@@ -384,17 +370,69 @@ export const MovieStudio: React.FC = () => {
               </div>
             )}
             
-            <div className="mt-12 flex justify-start">
-              <button
-                onClick={() => store.setPhase('3_SCENE_STUDIO')}
-                className="text-gray-400 hover:text-white transition underline"
-              >
-                Back to Scene Studio
-              </button>
-            </div>
           </div>
         )}
       </div>
+
+      {/* GLOBAL STUDIO CONTROLS */}
+      {store.phase !== '1_IDEATION' && (
+        <div className="fixed bottom-0 left-0 w-full bg-gray-900 border-t border-gray-800 p-4 z-50 shadow-2xl">
+          <div className="max-w-5xl mx-auto flex items-center justify-between">
+            
+            {/* LEFT: Go Back & Delete */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => {
+                  if (store.phase === '2_CHARACTER_MAPPING') store.setPhase('1_IDEATION');
+                  if (store.phase === '3_SCENE_STUDIO') store.setPhase('2_CHARACTER_MAPPING');
+                  if (store.phase === '4_STITCHING_TIMELINE') store.setPhase('3_SCENE_STUDIO');
+                }}
+                className="flex items-center gap-2 text-gray-400 hover:text-white transition bg-gray-800 px-4 py-2 rounded-lg font-medium"
+              >
+                <ArrowLeft className="w-4 h-4" /> Go Back
+              </button>
+              
+              <button
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to delete this draft and start a new project?")) {
+                    store.resetStudio();
+                  }
+                }}
+                className="flex items-center gap-2 text-red-400 hover:text-red-300 transition bg-red-900/20 hover:bg-red-900/40 px-4 py-2 rounded-lg font-medium"
+              >
+                <Trash2 className="w-4 h-4" /> Delete Draft
+              </button>
+            </div>
+
+            {/* RIGHT: Save Draft & Next */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => {
+                  setSaveToast(true);
+                  setTimeout(() => setSaveToast(false), 3000);
+                }}
+                className="flex items-center gap-2 text-gray-300 hover:text-white transition bg-gray-800 px-4 py-2 rounded-lg font-medium"
+              >
+                {saveToast ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <Save className="w-4 h-4" />}
+                {saveToast ? 'Draft Saved!' : 'Save Draft'}
+              </button>
+
+              {store.phase !== '4_STITCHING_TIMELINE' && (
+                <button
+                  onClick={() => {
+                    if (store.phase === '2_CHARACTER_MAPPING') store.setPhase('3_SCENE_STUDIO');
+                    if (store.phase === '3_SCENE_STUDIO') store.setPhase('4_STITCHING_TIMELINE');
+                  }}
+                  className="flex items-center gap-2 text-black bg-neon-blue hover:bg-blue-400 transition px-6 py-2 rounded-lg font-bold"
+                >
+                  Next <ArrowRight className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 };

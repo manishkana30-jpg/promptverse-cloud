@@ -13,6 +13,7 @@ RUN npm run build
 FROM node:18-alpine
 
 # Security: Run as a non-root user
+RUN apk add --no-cache ffmpeg
 RUN addgroup -S nodeuser && adduser -S nodeuser -G nodeuser
 WORKDIR /app
 

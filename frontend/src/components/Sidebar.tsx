@@ -14,7 +14,7 @@ export const Sidebar: React.FC<Props> = ({ onOpenMarketplace, onOpenPhotoTheme }
   const { user, wallet, signOut } = useAuthStore();
 
   return (
-    <div className="fixed inset-y-0 left-0 w-64 bg-dark-surface border-r border-white/10 z-40 flex flex-col pt-8 pb-6 px-4 backdrop-blur-xl">
+    <div className="fixed inset-y-0 left-0 w-64 bg-dark-surface border-r border-white/10 z-40 flex flex-col pt-8 pb-6 px-4 backdrop-blur-xl overflow-y-auto">
       <div className="flex items-center gap-3 px-2 mb-10">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-blue to-neon-purple flex items-center justify-center shadow-[0_0_15px_rgba(0,243,255,0.4)]">
           <Film className="w-6 h-6 text-white" />

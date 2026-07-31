@@ -114,12 +114,30 @@ export const Sidebar: React.FC<Props> = ({ onOpenMarketplace, onOpenPhotoTheme }
 
       {user ? (
         <div className="mt-6 pt-6 border-t border-white/10 flex flex-col gap-4">
-          <div className="flex items-center justify-between px-2">
-            <div className="flex items-center gap-2 text-sm text-gray-300">
-              <Wallet className="w-4 h-4 text-neon-pink" />
-              <span>{wallet?.free_credits ?? 0} Free</span>
+          <div className="bg-black/30 rounded-xl p-4 border border-white/5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2 text-sm text-gray-300 font-bold">
+                <Wallet className="w-4 h-4 text-neon-pink" />
+                <span>Wallet</span>
+              </div>
             </div>
+            <div className="flex justify-between items-center text-xs text-gray-400 mb-1">
+              <span>Free Credits:</span>
+              <span className="text-white font-mono">{wallet?.free_credits ?? 0}</span>
+            </div>
+            <div className="flex justify-between items-center text-xs text-gray-400 mb-3 border-b border-white/10 pb-2">
+              <span>Paid Credits:</span>
+              <span className="text-neon-blue font-mono">{wallet?.purchased_credits ?? 0}</span>
+            </div>
+            
+            <NavLink 
+              to="/billing"
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold bg-gradient-to-r from-neon-blue to-neon-purple text-white hover:opacity-90 transition-all"
+            >
+              + Add Credits
+            </NavLink>
           </div>
+
           <button 
             onClick={() => signOut()}
             className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all text-red-400 hover:text-red-300 hover:bg-red-500/10"

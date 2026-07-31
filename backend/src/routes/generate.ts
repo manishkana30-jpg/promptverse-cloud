@@ -359,12 +359,6 @@ router.post('/lipsync', async (req: Request, res: Response) => {
 });
 
 async function callDirectorLLM(promptText: string) {
-  if (!process.env.GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY is missing from environment variables.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
   const systemInstruction = `You are an expert AI director. Return only valid raw JSON structured storyboard scenes.
 You MUST strictly adhere to this exact JSON schema:
 {
@@ -376,26 +370,57 @@ You MUST strictly adhere to this exact JSON schema:
   ]
 }`;
 
-  try {
-    console.log(`Attempting generation with Google Gemini (gemini-3.6-flash) and Google Search Grounding...`);
-    
-    // According to @google/genai syntax:
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
-      contents: [
-        { role: 'user', parts: [{ text: systemInstruction + '\n\nStory Prompt: ' + promptText }] }
-      ],
-      config: {
-        tools: [{ googleSearch: {} }],
-        responseMimeType: "application/json"
-      }
-    });
-
-    return response.text || "";
-  } catch (error: any) {
-    console.error(`❌ Critical: Google Gemini generation failed.`);
-    throw new Error(`Storyboard generation failed: ${error.message}`);
+  // 1. Try Google Gemini first
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      console.log(`Attempting generation with Google Gemini (gemini-3.6-flash) and Google Search Grounding...`);
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const response = await ai.models.generateContent({
+        model: 'gemini-3.6-flash',
+        contents: [
+          { role: 'user', parts: [{ text: systemInstruction + '\n\nStory Prompt: ' + promptText }] }
+        ],
+        config: {
+          tools: [{ googleSearch: {} }],
+          responseMimeType: "application/json"
+        }
+      });
+      return response.text || "";
+    } catch (error: any) {
+      console.warn(`⚠️ Gemini failed or quota exceeded. Falling back to OpenRouter. Reason: ${error.message}`);
+    }
   }
+
+  // 2. Fallback to OpenRouter
+  if (process.env.LLM_API_KEY) {
+    try {
+      let primaryModel = process.env.LLM_MODEL_PRIMARY || 'meta-llama/llama-3.3-70b-instruct';
+      console.log(`Attempting generation with Fallback Model: ${primaryModel}`);
+      const headers = {
+        'Authorization': `Bearer ${process.env.LLM_API_KEY}`,
+        'HTTP-Referer': process.env.FRONTEND_URL || 'http://localhost:5173',
+        'X-Title': 'PromptVerse AI',
+        'Content-Type': 'application/json',
+      };
+      const response = await axios.post(
+        `${process.env.LLM_BASE_URL || 'https://openrouter.ai/api/v1'}/chat/completions`,
+        {
+          model: primaryModel,
+          messages: [
+            { role: 'system', content: systemInstruction },
+            { role: 'user', content: promptText }
+          ]
+        },
+        { headers, timeout: 20000 }
+      );
+      return response.data.choices[0].message.content;
+    } catch (fallbackError: any) {
+      console.error(`❌ Critical: Fallback OpenRouter generation failed.`);
+      throw new Error(`Storyboard generation failed on both Gemini and Fallback: ${fallbackError.message}`);
+    }
+  }
+
+  throw new Error("No API keys configured for story generation.");
 }
 
 
@@ -407,10 +432,7 @@ router.post('/master-storyboard', async (req: Request, res: Response) => {
     return res.status(400).json(err.toJSON());
   }
 
-  if (!process.env.GEMINI_API_KEY) {
-    const err = new AppError('Missing Gemini API Key in environment variables', 'MISSING_API_KEY', 500);
-    return res.status(500).json(err.toJSON());
-  }
+
 
   const traceId = req.headers['x-trace-id'] as string || crypto.randomUUID();
 

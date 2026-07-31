@@ -31,9 +31,15 @@ export const MovieStudio: React.FC = () => {
         body: JSON.stringify({ idea, user_id: user.id })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to generate story');
+      if (!res.ok) {
+        const apiError = new Error(data.error?.message || data.message || 'Failed to generate story') as any;
+        apiError.code = data.error?.code || 'GEN_ERROR';
+        apiError.remedy = data.error?.remedy;
+        apiError.action_link = data.error?.action_link;
+        throw apiError;
+      }
       
-      const { expanded_story, characters, scenes, project_id } = data.data;
+      const newCharacters = data.story.characters.map((c: any) => ({ ...c, id: crypto.randomUUID() }));
       
       // The backend now inserts the project, characters, and scenes into Supabase
       // and returns the real database UUIDs.
@@ -54,7 +60,12 @@ export const MovieStudio: React.FC = () => {
       store.setProjectData(projectId, expanded_story, characters, mappedScenes);
       store.setPhase('2_CHARACTER_MAPPING');
     } catch (err: any) {
-      setError({ code: 'GEN_ERROR', message: err.message });
+      setError({ 
+        code: err.code || 'GEN_ERROR', 
+        message: err.message,
+        remedy: err.remedy,
+        action_link: err.action_link
+      });
     } finally {
       setIsGeneratingStory(false);
     }
@@ -78,11 +89,22 @@ export const MovieStudio: React.FC = () => {
         body: formData
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Upload failed');
+      if (!res.ok) {
+        const apiError = new Error(data.error?.message || data.message || 'Upload failed') as any;
+        apiError.code = data.error?.code || 'UPLOAD_ERROR';
+        apiError.remedy = data.error?.remedy;
+        apiError.action_link = data.error?.action_link;
+        throw apiError;
+      }
       
       store.updateCharacterImage(tempId, data.url);
     } catch (err: any) {
-      setError({ code: 'UPLOAD_ERROR', message: err.message });
+      setError({ 
+        code: err.code || 'UPLOAD_ERROR', 
+        message: err.message,
+        remedy: err.remedy,
+        action_link: err.action_link
+      });
     } finally {
       setUploadingCharId(null);
     }
@@ -98,7 +120,13 @@ export const MovieStudio: React.FC = () => {
         body: JSON.stringify({ user_id: user.id, scene_id: sceneId, prompt, tier: 'draft' })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error?.message || data.message || 'Video generation failed');
+      if (!res.ok) {
+        const apiError = new Error(data.error?.message || data.message || 'Video generation failed') as any;
+        apiError.code = data.error?.code || 'VIDEO_ERROR';
+        apiError.remedy = data.error?.remedy;
+        apiError.action_link = data.error?.action_link;
+        throw apiError;
+      }
       
       // In this system, webhook will eventually update it.
       // We will mock the video url for the UI to proceed immediately since webhooks require ngrok locally
@@ -107,7 +135,12 @@ export const MovieStudio: React.FC = () => {
       }, 3000);
 
     } catch (err: any) {
-      setError({ code: 'VIDEO_ERROR', message: err.message });
+      setError({ 
+        code: err.code || 'VIDEO_ERROR', 
+        message: err.message,
+        remedy: err.remedy,
+        action_link: err.action_link
+      });
     } finally {
       setGeneratingSceneId(null);
     }
@@ -123,14 +156,25 @@ export const MovieStudio: React.FC = () => {
         body: JSON.stringify({ user_id: user.id, scene_id: sceneId, prompt })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Lipsync generation failed');
+      if (!res.ok) {
+        const apiError = new Error(data.error?.message || data.message || 'Lipsync generation failed') as any;
+        apiError.code = data.error?.code || 'LIPSYNC_ERROR';
+        apiError.remedy = data.error?.remedy;
+        apiError.action_link = data.error?.action_link;
+        throw apiError;
+      }
       
       // The backend actually updates the db, but for immediate UI:
       setTimeout(() => {
         store.updateSceneMedia(sceneId, 'lipsync', 'https://www.w3schools.com/html/mov_bbb.mp4');
       }, 4000);
     } catch (err: any) {
-      setError({ code: 'LIPSYNC_ERROR', message: err.message });
+      setError({ 
+        code: err.code || 'LIPSYNC_ERROR', 
+        message: err.message,
+        remedy: err.remedy,
+        action_link: err.action_link
+      });
     } finally {
       setGeneratingSceneId(null);
     }
@@ -146,11 +190,22 @@ export const MovieStudio: React.FC = () => {
         body: JSON.stringify({ project_id: store.projectId, scene_ids: sceneIds })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Stitching failed');
+      if (!res.ok) {
+        const apiError = new Error(data.error?.message || data.message || 'Stitching failed') as any;
+        apiError.code = data.error?.code || 'STITCH_ERROR';
+        apiError.remedy = data.error?.remedy;
+        apiError.action_link = data.error?.action_link;
+        throw apiError;
+      }
       
       store.setStitchJob(data.job_id);
     } catch (err: any) {
-      setError({ code: 'STITCH_ERROR', message: err.message });
+      setError({ 
+        code: err.code || 'STITCH_ERROR', 
+        message: err.message,
+        remedy: err.remedy,
+        action_link: err.action_link
+      });
     }
   };
 

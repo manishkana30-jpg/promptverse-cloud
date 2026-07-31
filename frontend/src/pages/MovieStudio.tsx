@@ -334,11 +334,13 @@ export const MovieStudio: React.FC = () => {
               <div className="max-w-md mx-auto">
                 <button
                   onClick={handleStitchMovie}
-                  disabled={store.stitchStatus === 'pending' || store.stitchStatus === 'processing'}
+                  disabled={store.scenes.length === 0 || !store.scenes.every(s => s.video_url || s.lipsync_video_url) || store.stitchStatus === 'pending' || store.stitchStatus === 'processing'}
                   className="w-full bg-gradient-to-r from-neon-blue to-neon-purple text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-neon-blue/20 transition-all disabled:opacity-50 flex items-center justify-center gap-3 text-lg mb-6"
                 >
                   {(store.stitchStatus === 'pending' || store.stitchStatus === 'processing') ? (
                     <><Loader2 className="w-6 h-6 animate-spin" /> Compiling Master Movie...</>
+                  ) : store.scenes.length === 0 || !store.scenes.every(s => s.video_url || s.lipsync_video_url) ? (
+                    <><Play className="w-6 h-6 fill-current" /> Generate All Scenes First</>
                   ) : (
                     <><Play className="w-6 h-6 fill-current" /> Stitch Final Movie</>
                   )}

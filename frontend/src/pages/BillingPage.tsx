@@ -51,7 +51,7 @@ export const BillingPage: React.FC = () => {
 
     try {
       // 1. Create Order on Backend
-      const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/payments/razorpay/create-order`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/pay/razorpay/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: user.id, tier: tierId })
@@ -71,7 +71,7 @@ export const BillingPage: React.FC = () => {
         handler: async function (response: any) {
           try {
             // 3. Verify Payment on Backend
-            const verifyRes = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/payments/razorpay/verify`, {
+            const verifyRes = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/pay/razorpay/verify`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({

@@ -199,6 +199,7 @@ router.post('/character-scene', async (req: Request, res: Response) => {
         });
       }
     } catch (primaryError: any) {
+      console.error("PRIMARY ERROR:", primaryError);
       logger.warn({ trace_id: traceId, err: primaryError.message || primaryError }, 'Primary AI provider failed. Attempting failover to Replicate.');
       
       // If the primary provider was Fal, attempt Replicate as the failover

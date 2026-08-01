@@ -10,9 +10,9 @@ declare global {
 }
 
 const TIER_MAPPING = [
-  { id: 'starter', name: 'Starter', credits: 100, amount_inr: 830, description: 'Perfect for testing and small projects.' },
-  { id: 'creator', name: 'Creator', credits: 500, amount_inr: 3320, description: 'Best for active creators making regular videos.', popular: true },
-  { id: 'studio', name: 'Studio', credits: 1500, amount_inr: 8300, description: 'For power users and professional studios.' }
+  { id: 'starter', name: 'Starter', credits: 100, amount_inr: 249, description: 'Perfect for testing and small projects.' },
+  { id: 'creator', name: 'Creator', credits: 500, amount_inr: 999, description: 'Best for active creators making regular videos.', popular: true },
+  { id: 'studio', name: 'Studio', credits: 1500, amount_inr: 2499, description: 'For power users and professional studios.' }
 ];
 
 export const BillingPage: React.FC = () => {

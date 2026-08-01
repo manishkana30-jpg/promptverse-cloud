@@ -24,11 +24,11 @@ const razorpay = new Razorpay({
 });
 
 // Tiers Mapping (Credits -> Amount in INR)
-// Assuming 100 credits = $10 ≈ ₹830
+// Adjusted for best online pricing with ~5-10% profit margin
 const TIER_MAPPING: Record<string, { credits: number, amount_inr: number }> = {
-  starter: { credits: 100, amount_inr: 830 },
-  creator: { credits: 500, amount_inr: 3320 }, // $40
-  studio: { credits: 1500, amount_inr: 8300 } // $100
+  starter: { credits: 100, amount_inr: 249 },
+  creator: { credits: 500, amount_inr: 999 }, // Popular tier
+  studio: { credits: 1500, amount_inr: 2499 } // High volume tier
 };
 
 router.post('/razorpay/create-order', async (req: Request, res: Response) => {
@@ -41,10 +41,12 @@ router.post('/razorpay/create-order', async (req: Request, res: Response) => {
   const { credits, amount_inr } = TIER_MAPPING[tier];
 
   try {
+    // Razorpay receipt limit is 40 characters
+    const shortReceipt = `rcpt_${Date.now().toString().slice(-8)}_${Math.floor(Math.random()*1000)}`;
     const options = {
       amount: amount_inr * 100, // Razorpay takes amount in paise (smallest currency unit)
       currency: "INR",
-      receipt: `receipt_${user_id}_${Date.now()}`
+      receipt: shortReceipt
     };
 
     const order = await razorpay.orders.create(options);
